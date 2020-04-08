@@ -1,0 +1,29 @@
+{
+  "name": "idena",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idena-dev/idena-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/idena-dev/idena-js/issues"
+  },
+  "homepage": "https://github.com/idena-dev/idena-js#readme",
+  "devDependencies": {
+    "@types/node": "^13.11.0",
+    "@types/request-promise": "^4.1.46"
+  },
+  "dependencies": {
+    "ethers": "^4.0.46",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5",
+    "rlp": "^2.2.4"
+  }
+}
