@@ -1,13 +1,17 @@
 import Provider from "./Provider";
 import request from "request-promise";
 import { SigningKey, keccak256 } from "ethers/utils"
+import { Wallet } from "ethers"
+import Transaction from "../models/Transaction";
 
-export default class LocalKeyStore implements Provider {
+export = class LocalKeyStore implements Provider {
 
     private signingKey: SigningKey;
     private rpc: string;
 
-    constructor(privateKey: string, rpc: string = "https://rpc.idena.dev") {
+    constructor(privateKey?: string, rpc: string = "https://rpc.idena.dev") {
+        if (privateKey === undefined)
+            privateKey = Wallet.createRandom().privateKey;
         this.signingKey = new SigningKey(privateKey);
         this.rpc = rpc;
     }
@@ -18,18 +22,13 @@ export default class LocalKeyStore implements Provider {
         return Buffer.concat([
             Buffer.from(sig.r.substr(2), 'hex'),
             Buffer.from(sig.s.substr(2), 'hex'),
-            Buffer.from([0]),
+            Buffer.from([sig.recoveryParam]),
         ]);
     }
 
     inject(signedMessage: Buffer): Promise<string> {
         const hexSignedMessage = "0x"+signedMessage.toString("hex");
         return this.request("bcn_sendRawTx", [hexSignedMessage]);
-    }
-
-    async signAndInject(message: Buffer): Promise<string> {
-        const signedMessage = await this.sign(message);
-        return this.inject(signedMessage);
     }
 
     getAddress(): Promise<string> {
@@ -44,6 +43,23 @@ export default class LocalKeyStore implements Provider {
     async getNonceByAddress(address: string): Promise<number> {
         const { nonce } = await this.request("dna_getBalance", [address]);
         return nonce;
+    }
+
+    async getTransactionByHash(hash: string): Promise<Transaction> {
+        let result = await this.request("bcn_transaction", [hash]);
+        return Transaction.deserialize(this, {
+            hash: result.hash,
+            nonce: result.nonce,
+            type: result.type === "send" ? 0 : -1,
+            to: result.to,
+            from: result.from,
+            amount: result.amount,
+            epoch: result.epoch,
+            payload: result.payload,
+            blockHash: result.blockHash,
+            usedFee: result.usedFee,
+            timestamp: new Date(result.timestamp*1000),            
+        });
     }
 
     private request(method: string, params: any[] = []) {

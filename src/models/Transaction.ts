@@ -1,10 +1,13 @@
-import Provider from "./providers/Provider";
+import Provider from "../providers/Provider";
+import Operation from "./Operation";
 const RLP = require("rlp");
 
 export interface TransactionParameters {
     nonce?: number;
     epoch?: number;
     type?: number;
+    from?: string;
+    blockHash?: string;
     to: string;
     amount: number;
     maxFee?: number;
@@ -12,13 +15,19 @@ export interface TransactionParameters {
     payload?: string | Buffer;
     signature?: string | Buffer;
     hash?: string;
+    usedFee?: number;
+    timestamp?: Date;
 }
 
-export class Transaction implements TransactionParameters {
+export default class Transaction implements TransactionParameters {
     
+    private provider: Provider;
+
     nonce?: number;
     epoch?: number;
     type?: number;
+    from?: string;
+    blockHash?: string;
     to: string;
     amount: number;
     maxFee?: number;
@@ -26,26 +35,28 @@ export class Transaction implements TransactionParameters {
     payload?: string | Buffer;
     signature?: string | Buffer;
     hash?: string;
+    usedFee?: number;
+    timestamp?: Date;
 
-    async inject(provider: Provider): Promise<Transaction> {
-        const forged = await this.getForged(provider);
-        const signature = await provider.sign(forged);
-        const signedTransaction = await this.getForged(provider, signature);
-        this.hash = await provider.inject(signedTransaction);
-        return this;
+    constructor(provider: Provider) {
+        this.provider = provider;
     }
 
-    confirmation(): Promise<string> {
-        return Promise.resolve(this.hash);
+    async inject(): Promise<Operation> {
+        const forged = await this.getForged();
+        const signature = await this.provider.sign(forged);
+        const signedTransaction = await this.getForged(signature);
+        this.hash = await this.provider.inject(signedTransaction);
+        return new Operation(this.provider, this.hash);
     }
 
-    async getForged(provider: Provider, signature?: Buffer): Promise<Buffer> {
+    async getForged(signature?: Buffer): Promise<Buffer> {
         if (this.nonce === undefined) {
-            const address = await provider.getAddress();
-            this.nonce = (await provider.getNonceByAddress(address)) + 1;
+            const address = await this.provider.getAddress();
+            this.nonce = (await this.provider.getNonceByAddress(address)) + 1;
         }
         if (this.epoch === undefined) {
-            this.epoch = await provider.getEpoch();
+            this.epoch = await this.provider.getEpoch();
         }
         if (this.payload !== undefined && this.payload instanceof Buffer)
             this.payload = "0x"+Buffer.from(this.payload).toString("hex");
@@ -65,12 +76,8 @@ export class Transaction implements TransactionParameters {
         return RLP.encode(data);
     }
 
-    static deserialize(data: TransactionParameters): Transaction {
-        return Object.assign(new Transaction(), data);
-    }
-
-    serialize(): TransactionParameters {
-        return { ...this };
+    static deserialize(provider: Provider, data: TransactionParameters): Transaction {
+        return Object.assign(new Transaction(provider), data);
     }
 
 }

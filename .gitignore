@@ -42,3 +42,5 @@ yarn.lock
 
 # custom files
 test.ts
+
+test.sh
