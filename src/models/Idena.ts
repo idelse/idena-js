@@ -1,6 +1,7 @@
 import Provider from "../providers/Provider";
 import Transaction, { TransactionParameters } from "./Transaction";
 import Operation from "./Operation";
+import Identity from "./Identity";
 
 export default class Idena {
 
@@ -39,6 +40,14 @@ export default class Idena {
         else
             throw Error("Operation must be string or Operation type.");
         return this.provider.getTransactionByHash(hash);
+    }
+
+    async getBalanceByAddress(address: string): Promise<{ balance: number, stake: number }> {
+        return this.provider.getBalanceByAddress(address);
+    }
+
+    async getIdentityByAddress(address: string): Promise<Identity> {
+        return this.provider.getIdentityByAddress(address);
     }
 
 }

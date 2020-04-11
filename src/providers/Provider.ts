@@ -7,6 +7,8 @@ export default interface Provider {
     inject(signedTransaction: Buffer): Promise<string>;
     getEpoch(): Promise<number>;
     getNonceByAddress(address: string): Promise<number>;
+    getBalanceByAddress(address: string): Promise<{ balance: number, stake: number }>;
     getTransactionByHash(hash: string): Promise<Transaction>;
+    getIdentityByAddress(address: string): Promise<Identity>;
 
 }
