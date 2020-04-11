@@ -1,4 +1,5 @@
 import Transaction from "../models/Transaction";
+import Identity from "../models/Identity";
 
 export default interface Provider {
 

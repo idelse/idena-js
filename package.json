@@ -1,11 +1,12 @@
 {
   "name": "idena-js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Idena JS Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc --declaration",
+    "build": "tsc",
+    "prepare": "tsc",
     "test": "ava --verbose tests/**/* --timeout=2m"
   },
   "repository": {
