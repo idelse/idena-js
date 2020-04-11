@@ -12,11 +12,11 @@ export default interface Identity {
     madeFlips: number;
     totalQualifiedFlips: number;
     totalShortFlipPoints: number;
-    flips: []string;
+    flips: string[];
     online: boolean;
     generation: number;
     code: string;
-    invitees: []{ TxHash: string, Address: string };
+    invitees: { TxHash: string, Address: string }[];
     penalty: number;
     lastValidationFlags: any;
 }

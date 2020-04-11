@@ -69,7 +69,9 @@ export = class LocalKeyStore implements Provider {
     }
 
     async getIdentityByAddress(address: string): Promise<Identity> {
-        return this.request("dna_identity", [address]);
+        let identity: any = this.request("dna_identity", [address]);
+        identity.penalty = parseFloat(identity.penalty);
+        return identity;
     }
 
     private request(method: string, params: any[] = []) {
