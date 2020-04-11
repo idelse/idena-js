@@ -3,9 +3,9 @@ import Transaction from "./models/Transaction";
 import Operation from "./models/Operation";
 import LocalKeyStore from "./providers/LocalKeyStore";
 
-export = {
+export {
     Idena,
     Transaction,
     Operation,
-    LocalKeyStore
+    LocalKeyStore   
 };

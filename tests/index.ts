@@ -1,5 +1,5 @@
 import test from "ava";
-const { Idena, LocalKeyStore } = require("../src/index");
+import { Idena, LocalKeyStore } from "../src/index";
 
 test.beforeEach(async t => {
 	const privateKey = process.env.PRIVATE_KEY;

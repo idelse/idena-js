@@ -17,9 +17,17 @@ export default class Idena {
     async bulkTransactions(transactions: TransactionParameters[]): Promise<Operation[]> {
         const address = await this.provider.getAddress();
         const nonce = await this.provider.getNonceByAddress(address);
-        let ops: Promise<Operation>[] = transactions
-            .map((transaction, i) => this.transfer({ ...transaction, nonce: nonce + i + 1 }));
-        return Promise.all(ops);
+        let ops: Operation[] = [];
+        for (let i = 0; i < transactions.length; ++i) {
+            ops = [
+                ...ops,
+                await this.transfer({
+                    ...transactions[i],
+                    nonce: nonce + i + 1
+                })
+            ];
+        }
+        return ops;
     }
 
     async getTransactionByOperation(op: string | Operation): Promise<Transaction> {
