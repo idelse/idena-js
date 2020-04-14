@@ -73,7 +73,6 @@ export default class Transaction implements TransactionParameters {
             this.payload || "0x",
             signature || this.signature,
         ].filter(v => v !== undefined);
-        console.log(data, RLP.encode(data).toString("hex"))
         return RLP.encode(data);
     }
 
