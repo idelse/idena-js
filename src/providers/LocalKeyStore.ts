@@ -87,8 +87,9 @@ export = class LocalKeyStore implements Provider {
                 "content-type": "application/json",
             }
         }).then(r => {
-            if (!r)
-                throw Error("required method could be blacklisted")
+            if (!r) {
+                throw Error(`${method} could be blacklisted`)
+            }
             if (r && r.error && r.error.message)
                 throw Error(r.error.message);
             if (!r.result)
