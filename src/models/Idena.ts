@@ -5,7 +5,7 @@ import Identity from "./Identity";
 
 export default class Idena {
 
-    public provider: Provider;
+    private provider: Provider;
 
     constructor(provider: Provider) {
         this.provider = provider;
@@ -48,6 +48,10 @@ export default class Idena {
 
     async getIdentityByAddress(address: string): Promise<Identity> {
         return this.provider.getIdentityByAddress(address);
+    }
+
+    getProvider(): Provider {
+        return this.provider;
     }
 
 }
