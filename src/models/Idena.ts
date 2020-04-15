@@ -5,7 +5,7 @@ import Identity from "./Identity";
 
 export default class Idena {
 
-    private provider: Provider;
+    public provider: Provider;
 
     constructor(provider: Provider) {
         this.provider = provider;
