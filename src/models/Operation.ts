@@ -12,7 +12,7 @@ export default class Operation {
 
     async confirmation(): Promise<Operation> {
         return new Promise((resolve, reject) => {
-            let i = 70;
+            let i = 15;
             const interval = setInterval(async () => {
                 if (i === 0) reject(new Error("Error timeout"));
                 const transaction = await this.provider.getTransactionByHash(this.hash);
@@ -21,7 +21,7 @@ export default class Operation {
                     resolve(this);
                 }
                 i--;
-            }, 1000);
+            }, 5000);
         });
     }
 
