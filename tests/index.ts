@@ -60,3 +60,14 @@ test.serial("Retrieve identity details by address.", async (t: any) => {
 	const identity = await idena.getIdentityByAddress(address);
 	t.is(identity.address, address);
 });
+
+test.serial("Transfer with large payload should be accepted.", async (t: any) => {
+	const { idena, to } = t.context;
+	let op = await idena.transfer({
+		amount: 0.001,
+		to,
+		payload: "0x000000000000000000000000000000000000000000000000000000000000000000",
+	});
+	await op.confirmation();
+	t.is(op.hash.length, 66);
+});

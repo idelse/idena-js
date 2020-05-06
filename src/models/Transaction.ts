@@ -51,6 +51,7 @@ export default class Transaction implements TransactionParameters {
     }
 
     async getForged(signature?: Buffer): Promise<Buffer> {
+        let payload;
         if (this.nonce === undefined) {
             const address = await this.provider.getAddress();
             this.nonce = (await this.provider.getNonceByAddress(address)) + 1;
@@ -59,18 +60,27 @@ export default class Transaction implements TransactionParameters {
             this.epoch = await this.provider.getEpoch();
         }
         if (this.payload !== undefined && this.payload instanceof Buffer)
-            this.payload = "0x"+Buffer.from(this.payload).toString("hex");
+            payload = "0x"+Buffer.from(this.payload).toString("hex");
+        else if (this.payload !== undefined && typeof this.payload === 'string' || this.payload instanceof String)
+            payload = "0x"+this.payload.replace("0x", "");
+        else
+            payload = "0x";
         if (this.signature !== undefined && this.signature instanceof Buffer)
             this.signature = "0x"+Buffer.from(this.signature).toString("hex");
+        // https://bit.ly/2SIdJOb
+        const minFeePerByte = 100/10**18;
+        const baseFee = 0.000000001;
+        const payloadBytes = payload.replace("0x", "").length/2;
+        const maxFee = (this.maxFee || baseFee+minFeePerByte*payloadBytes)*10**18;
         const data = [
             this.nonce,
             this.epoch,
             this.type || 0,
             this.to,
             this.amount*10**18,
-            (this.maxFee || 0.00000000000003)*10**18,
+            maxFee,
             (this.tips || 0)*10**18,
-            this.payload || "0x",
+            payload,
             signature || this.signature,
         ].filter(v => v !== undefined);
         return RLP.encode(data);
