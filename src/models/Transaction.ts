@@ -71,15 +71,15 @@ export default class Transaction implements TransactionParameters {
         const minFeePerByte = 100/10**18;
         const baseFee = 0.000000001;
         const payloadBytes = payload.replace("0x", "").length/2;
-        const maxFee = (this.maxFee || baseFee+minFeePerByte*payloadBytes)*10**18;
+        const maxFee = this.maxFee || baseFee+minFeePerByte*payloadBytes;
         const data = [
             this.nonce,
             this.epoch,
             this.type || 0,
             this.to,
-            this.amount*10**18,
-            maxFee,
-            (this.tips || 0)*10**18,
+            Math.round(this.amount*10**18),
+            Math.round(maxFee*10**18),
+            Math.round((this.tips || 0)*10**18),
             payload,
             signature || this.signature,
         ].filter(v => v !== undefined);
