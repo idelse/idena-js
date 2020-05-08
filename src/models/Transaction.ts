@@ -50,6 +50,16 @@ export default class Transaction implements TransactionParameters {
         return new Operation(this.provider, this.hash);
     }
 
+    private feePerByte() {
+        const networkSize = 2000;
+        return Math.max(1/10**16, 0.1/networkSize);
+    }
+
+    private baseTransactionFee() {
+        const averageTransactionSize = 200;
+        return averageTransactionSize*this.feePerByte();
+    }
+
     async getForged(signature?: Buffer): Promise<Buffer> {
         let payload;
         if (this.nonce === undefined) {
@@ -68,10 +78,9 @@ export default class Transaction implements TransactionParameters {
         if (this.signature !== undefined && this.signature instanceof Buffer)
             this.signature = "0x"+Buffer.from(this.signature).toString("hex");
         // https://bit.ly/2SIdJOb
-        const minFeePerByte = 100/10**18;
-        const baseFee = 0.000000001;
+        const baseTransactionFee = this.baseTransactionFee();
         const payloadBytes = payload.replace("0x", "").length/2;
-        const maxFee = this.maxFee || baseFee+minFeePerByte*payloadBytes;
+        const maxFee = this.maxFee || baseTransactionFee+this.feePerByte()*payloadBytes;
         const data = [
             this.nonce,
             this.epoch,
