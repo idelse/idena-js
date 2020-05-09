@@ -12,7 +12,7 @@ test.beforeEach(async t => {
 test.serial("Transfer should be accepted.", async (t: any) => {
 	const { idena, to } = t.context;
 	console.log(to);
-	let op = await idena.transfer({ amount: 0.001, to });
+	let op = await idena.transfer({ nonce: 0, amount: 0.001, to });
 	await op.confirmation();
 	t.is(op.hash.length, 66);
 });

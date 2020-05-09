@@ -13,20 +13,27 @@ export = class LocalKeyStore implements Provider {
     constructor(privateKey?: string, rpc: string = "https://rpc.idena.dev") {
         if (privateKey === undefined)
             this.privateKey = secp256k1.utils.randomPrivateKey().toString();
-        this.privateKey = privateKey;
+        this.privateKey = this.remove0x(privateKey);
         this.rpc = rpc;
     }
 
     async sign(message: Buffer): Promise<Buffer> {
-        const digest = keccak256(message);
-        let [ sig ] = await secp256k1.sign(digest, this.privateKey, { recovered: true });
+        const digest = this.remove0x(keccak256(message));
+        let sig = await secp256k1.sign(digest, this.privateKey);
+        sig = this.remove0x(keccak256(Buffer.from(sig, "hex")));
+        console.log("sig >> ", sig);
         const r = sig.slice(0, 32);
         const s = sig.slice(32, 64);
-        let v = parseInt(sig[64]);
+        let v = parseInt(sig[63]);
         if (v !== 27 && v !== 28) {
             v = 27 + (v % 2);
         }
         const recoveryParam = (v - 27);
+        console.log([
+            Buffer.from(r, "hex"),
+            Buffer.from(s, "hex"),
+            Buffer.from([recoveryParam]),
+        ]);
         return Buffer.concat([
             Buffer.from(r, "hex"),
             Buffer.from(s, "hex"),
@@ -41,8 +48,8 @@ export = class LocalKeyStore implements Provider {
 
     getAddress(): Promise<string> {
         const publicKey = secp256k1.getPublicKey(this.privateKey);
-        const address = keccak256(Buffer.from(publicKey));
-        console.log(address);
+        const publicKeyWithou04Prefix = Buffer.from(publicKey.substr(2), "hex");
+        const address = "0x"+keccak256(publicKeyWithou04Prefix).substr(26);
         return Promise.resolve(address);
     }
 
@@ -106,6 +113,12 @@ export = class LocalKeyStore implements Provider {
                 throw Error("unknown error");
             return r.result;
         });
+    }
+
+    private remove0x(msg: string): string {
+        if (msg.slice(0, 2) === "0x")
+            return msg.substr(2);
+        return msg;
     }
 
 }
