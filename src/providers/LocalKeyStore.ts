@@ -20,20 +20,13 @@ export = class LocalKeyStore implements Provider {
     async sign(message: Buffer): Promise<Buffer> {
         const digest = this.remove0x(keccak256(message));
         let sig = await secp256k1.sign(digest, this.privateKey);
-        sig = this.remove0x(keccak256(Buffer.from(sig, "hex")));
-        console.log("sig >> ", sig);
-        const r = sig.slice(0, 32);
-        const s = sig.slice(32, 64);
-        let v = parseInt(sig[63]);
+        const r = sig.slice(8, 72);
+        const s = sig.slice(76, 140);
+        let v = parseInt(sig[139]);
         if (v !== 27 && v !== 28) {
             v = 27 + (v % 2);
         }
         const recoveryParam = (v - 27);
-        console.log([
-            Buffer.from(r, "hex"),
-            Buffer.from(s, "hex"),
-            Buffer.from([recoveryParam]),
-        ]);
         return Buffer.concat([
             Buffer.from(r, "hex"),
             Buffer.from(s, "hex"),
