@@ -1,29 +1,36 @@
 import Provider from "./Provider";
 import request from "request-promise";
-import { SigningKey, keccak256 } from "ethers/utils"
-import { Wallet } from "ethers"
 import Transaction from "../models/Transaction";
 import Identity from "../models/Identity";
+import * as secp256k1 from "noble-secp256k1";
+import { keccak256 } from "@ethersproject/keccak256";
 
 export = class LocalKeyStore implements Provider {
 
-    private signingKey: SigningKey;
+    private readonly privateKey: string;
     private rpc: string;
 
     constructor(privateKey?: string, rpc: string = "https://rpc.idena.dev") {
         if (privateKey === undefined)
-            privateKey = Wallet.createRandom().privateKey;
-        this.signingKey = new SigningKey(privateKey);
+            this.privateKey = secp256k1.utils.randomPrivateKey().toString();
+        this.privateKey = privateKey;
         this.rpc = rpc;
     }
 
     async sign(message: Buffer): Promise<Buffer> {
         const digest = keccak256(message);
-        const sig = this.signingKey.signDigest(digest);
+        let [ sig ] = await secp256k1.sign(digest, this.privateKey, { recovered: true });
+        const r = sig.slice(0, 32);
+        const s = sig.slice(32, 64);
+        let v = parseInt(sig[64]);
+        if (v !== 27 && v !== 28) {
+            v = 27 + (v % 2);
+        }
+        const recoveryParam = (v - 27);
         return Buffer.concat([
-            Buffer.from(sig.r.substr(2), "hex"),
-            Buffer.from(sig.s.substr(2), "hex"),
-            Buffer.from([sig.recoveryParam]),
+            Buffer.from(r, "hex"),
+            Buffer.from(s, "hex"),
+            Buffer.from([recoveryParam]),
         ]);
     }
 
@@ -33,7 +40,10 @@ export = class LocalKeyStore implements Provider {
     }
 
     getAddress(): Promise<string> {
-        return Promise.resolve(this.signingKey.address);
+        const publicKey = secp256k1.getPublicKey(this.privateKey);
+        const address = keccak256(Buffer.from(publicKey));
+        console.log(address);
+        return Promise.resolve(address);
     }
 
     async getEpoch(): Promise<number> {

@@ -11,11 +11,12 @@ test.beforeEach(async t => {
 
 test.serial("Transfer should be accepted.", async (t: any) => {
 	const { idena, to } = t.context;
+	console.log(to);
 	let op = await idena.transfer({ amount: 0.001, to });
 	await op.confirmation();
 	t.is(op.hash.length, 66);
 });
-
+/*
 test.serial("Two sequential transfers should be accepted.", async (t: any) => {
 	const { idena, to } = t.context;
 	let op1 = await idena.transfer({ amount: 0.001, to });
@@ -71,3 +72,4 @@ test.serial("Transfer with large payload should be accepted.", async (t: any) =>
 	await op.confirmation();
 	t.is(op.hash.length, 66);
 });
+*/

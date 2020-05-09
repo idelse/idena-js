@@ -22,7 +22,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@ethersproject/keccak256": "^5.0.0-beta.132",
     "ethers": "^4.0.46",
+    "noble-secp256k1": "^1.0.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "rlp": "^2.2.4"
