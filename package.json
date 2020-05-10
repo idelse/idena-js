@@ -16,18 +16,16 @@
   },
   "devDependencies": {
     "@types/node": "^13.11.0",
-    "@types/request-promise": "^4.1.46",
+    "@types/node-fetch": "^2.5.7",
     "ava": "^3.6.0",
     "ts-node": "^8.8.2",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@ethersproject/keccak256": "^5.0.0-beta.132",
-    "ethers": "^4.0.46",
     "noble-secp256k1": "^1.0.1",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.5",
-    "rlp": "^2.2.4"
+    "node-fetch": "^2.6.0",
+    "rlp": "^2.2.4",
+    "sha3": "^2.1.2"
   },
   "ava": {
     "extensions": [

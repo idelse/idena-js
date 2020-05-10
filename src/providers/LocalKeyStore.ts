@@ -1,9 +1,15 @@
 import Provider from "./Provider";
-import request from "request-promise";
+import fetch from "node-fetch";
 import Transaction from "../models/Transaction";
 import Identity from "../models/Identity";
-import * as secp256k1 from "noble-secp256k1";
-import { keccak256 } from "@ethersproject/keccak256";
+import {
+    keccak256,
+    remove0x,
+    generatePrivateKey,
+    getPublicByPrivateKey,
+    getAddressByPublicKey,
+    secp256k1Sign,
+} from "../utilities/crypto";
 
 export = class LocalKeyStore implements Provider {
 
@@ -12,26 +18,14 @@ export = class LocalKeyStore implements Provider {
 
     constructor(privateKey?: string, rpc: string = "https://rpc.idena.dev") {
         if (privateKey === undefined)
-            this.privateKey = secp256k1.utils.randomPrivateKey().toString();
-        this.privateKey = this.remove0x(privateKey);
+            this.privateKey = generatePrivateKey();
+        this.privateKey = remove0x(privateKey);
         this.rpc = rpc;
     }
 
     async sign(message: Buffer): Promise<Buffer> {
-        const digest = this.remove0x(keccak256(message));
-        let sig = await secp256k1.sign(digest, this.privateKey, { canonical: true });
-        const r = sig.slice(8, 72);
-        const s = sig.slice(76, 140);
-        let v = parseInt(sig[139]);
-        if (v !== 27 && v !== 28) {
-            v = 27 + (v % 2);
-        }
-        const recoveryParam = (v - 27);
-        return Buffer.concat([
-            Buffer.from(r, "hex"),
-            Buffer.from(s, "hex"),
-            Buffer.from([recoveryParam]),
-        ]);
+        const digest = remove0x(keccak256(message));
+        return secp256k1Sign(digest, this.privateKey);
     }
 
     inject(signedMessage: Buffer): Promise<string> {
@@ -40,10 +34,8 @@ export = class LocalKeyStore implements Provider {
     }
 
     getAddress(): Promise<string> {
-        const publicKey = secp256k1.getPublicKey(this.privateKey);
-        const publicKeyWithou04Prefix = Buffer.from(publicKey.substr(2), "hex");
-        const address = "0x"+keccak256(publicKeyWithou04Prefix).substr(26);
-        return Promise.resolve(address);
+        const publicKey = getPublicByPrivateKey(this.privateKey);
+        return Promise.resolve(getAddressByPublicKey(publicKey));
     }
 
     async getEpoch(): Promise<number> {
@@ -85,33 +77,29 @@ export = class LocalKeyStore implements Provider {
     }
 
     private request(method: string, params: any[] = []) {
-        return request({
-            url: this.rpc,
-            json: {
+        return fetch(this.rpc, {
+            body: JSON.stringify({
                 id: 1,
                 method,
                 params
-            },
+            }),
             method: "POST",
             headers: {
                 "content-type": "application/json",
             }
-        }).then(r => {
-            if (!r) {
-                throw Error(`${method} could be blacklisted`)
-            }
-            if (r && r.error && r.error.message)
-                throw Error(r.error.message);
-            if (!r.result)
-                throw Error("unknown error");
-            return r.result;
-        });
-    }
+        })
+            .then(res => res.json())
+            .then(res => {
 
-    private remove0x(msg: string): string {
-        if (msg.slice(0, 2) === "0x")
-            return msg.substr(2);
-        return msg;
+                if (!res) {
+                    throw Error(`${method} could be blacklisted`)
+                }
+                if (res && res.error && res.error.message)
+                    throw Error(res.error.message);
+                if (!res.result)
+                    throw Error("unknown error");
+                return res.result;
+            });
     }
 
 }
