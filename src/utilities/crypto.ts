@@ -31,9 +31,16 @@ export function getAddressByPublicKey(publicKey: string) {
 }
 
 export async function secp256k1Sign(msg: string, privateKey: string) {
-    let [ sig, recoveryParam ] = await secp256k1.sign(msg, privateKey, { canonical: true, recovered: true });
+    let sig = await secp256k1.sign(msg, privateKey, { canonical: true });
     const r = sig.slice(8, 72);
     const s = sig.slice(76, 140);
+    const recoveryParam = 0;
+    console.log(msg);
+    console.log([
+        r,
+        s,
+        [recoveryParam],
+    ]);
     return Buffer.concat([
         Buffer.from(r, "hex"),
         Buffer.from(s, "hex"),
