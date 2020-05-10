@@ -27,15 +27,17 @@ export function getPublicByPrivateKey(privateKey: string) {
 }
 
 export function getAddressByPublicKey(publicKey: string) {
+    console.log({ publicKey });
     return "0x"+keccak256(publicKey).substr(26);
 }
 
-export async function secp256k1Sign(msg: string, privateKey: string) {
-    let sig = await secp256k1.sign(msg, privateKey, { canonical: true });
+export async function secp256k1Sign(digest: string, privateKey: string) {
+    console.log("digest >> ", digest)
+    let sig = await secp256k1.sign(digest, privateKey, { canonical: true });
     const r = sig.slice(8, 72);
     const s = sig.slice(76, 140);
     const recoveryParam = 0;
-    console.log(msg);
+    console.log(digest);
     console.log([
         r,
         s,

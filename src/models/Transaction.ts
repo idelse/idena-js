@@ -92,7 +92,8 @@ export default class Transaction implements TransactionParameters {
             payload,
             signature || this.signature,
         ].filter(v => v !== undefined);
-        console.log(data);
+        if (!signature)
+            console.log(data);
         return RLP.encode(data);
     }
 

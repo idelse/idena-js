@@ -25,6 +25,7 @@ export = class LocalKeyStore implements Provider {
 
     async sign(message: Buffer): Promise<Buffer> {
         const digest = remove0x(keccak256(message));
+        console.log("message >> ", message);
         return secp256k1Sign(digest, this.privateKey);
     }
 
