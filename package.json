@@ -8,7 +8,8 @@
     "publish": "tsc && npm publish",
     "build": "tsc",
     "prepare": "tsc",
-    "test": "ava --verbose tests/**/* --timeout=2m"
+    "test": "ava --verbose tests/**/* --timeout=2m",
+    "format": "prettier-standard --format"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,8 @@
     "@types/node": "^13.11.0",
     "@types/node-fetch": "^2.5.7",
     "ava": "^3.6.0",
+    "pre-commit": "^1.2.2",
+    "prettier-standard": "^16.3.0",
     "ts-node": "^8.8.2",
     "typescript": "^3.8.3"
   },
@@ -34,5 +37,8 @@
     "require": [
       "ts-node/register"
     ]
-  }
+  },
+  "pre-commit": [
+    "format"
+  ]
 }
