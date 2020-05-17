@@ -16,7 +16,7 @@ export = class LocalKeyStore implements Provider {
   private rpc: string
 
   constructor (privateKey?: string, rpc: string = 'https://rpc.idena.dev') {
-    if (privateKey === undefined) this.privateKey = generatePrivateKey()
+    if (privateKey === undefined) privateKey = generatePrivateKey()
     this.privateKey = remove0x(privateKey)
     this.rpc = rpc
   }

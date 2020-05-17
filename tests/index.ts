@@ -81,3 +81,9 @@ test.serial(
     t.is(op.hash.length, 66)
   }
 )
+
+test.serial('Creare a private key using LocalKeyStore object', async (t: any) => {
+    const provider = new LocalKeyStore()
+    const address = await provider.getAddress()
+    t.is(address.length, 42)
+})
