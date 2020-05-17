@@ -1,5 +1,5 @@
 import Provider from './Provider'
-import fetch from 'node-fetch'
+import request from 'request-promise'
 import Transaction from '../models/Transaction'
 import Identity from '../models/Identity'
 import {
@@ -77,26 +77,22 @@ export = class LocalKeyStore implements Provider {
   }
 
   private request (method: string, params: any[] = []) {
-    return fetch(this.rpc, {
-      body: JSON.stringify({
+    return request({
+      url: this.rpc,
+      json: {
         id: 1,
         method,
         params
-      }),
+      },
       method: 'POST',
       headers: {
         'content-type': 'application/json'
       }
+    }).then(r => {
+      if (!r) throw Error('required method could be blacklisted')
+      if (r && r.error && r.error.message) throw Error(r.error.message)
+      if (!r.result) throw Error('unknown error')
+      return r.result
     })
-      .then(res => res.json())
-      .then(res => {
-        if (!res) {
-          throw Error(`${method} could be blacklisted`)
-        }
-        if (res && res.error && res.error.message)
-          throw Error(res.error.message)
-        if (!res.result) throw Error('unknown error')
-        return res.result
-      })
   }
 }
