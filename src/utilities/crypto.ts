@@ -27,7 +27,7 @@ export function keccak256 (msg: string | Buffer): string {
 }
 
 export function generatePrivateKey () {
-  return Buffer.from(secp256k1.utils.randomPrivateKey()).toString("hex")
+  return Buffer.from(secp256k1.utils.randomPrivateKey()).toString('hex')
 }
 
 export function getPublicByPrivateKey (privateKey: string) {
