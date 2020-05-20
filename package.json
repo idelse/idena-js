@@ -5,9 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "publish": "tsc && npm publish",
-    "build": "tsc",
-    "prepare": "tsc",
+    "build": "npm run format && npm ci && tsc -d --declarationMap",
     "test": "ava --verbose tests/**/* --timeout=2m",
     "format": "prettier-standard --format"
   },
@@ -19,10 +17,10 @@
     "@types/node": "^13.11.0",
     "@types/request-promise": "^4.1.46",
     "ava": "^3.6.0",
-    "pre-commit": "^1.2.2",
-    "prettier-standard": "^16.3.0",
     "ts-node": "^8.8.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "pre-commit": "^1.2.2",
+    "prettier-standard": "^16.3.0"
   },
   "dependencies": {
     "ethers": "^4.0.46",
