@@ -1,11 +1,11 @@
 {
   "name": "idena-js",
-  "version": "1.0.20",
+  "version": "1.0.22",
   "description": "Idena JS Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run format && npm ci && tsc -d --declarationMap",
+    "build": "rm -rf dist && npm run format && npm ci && tsc -d --declarationMap",
     "test": "ava --verbose tests/**/* --timeout=2m",
     "format": "prettier-standard --format"
   },
