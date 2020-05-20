@@ -1,9 +1,9 @@
 interface Config {
-    rpc: string;
+  rpc: string
 }
 
 const config: Config = {
-    rpc: "https://rpc.idena.dev",
-};
+  rpc: 'https://rpc.idena.dev'
+}
 
-export default config;
+export default config
