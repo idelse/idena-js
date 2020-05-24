@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run format && npm ci && tsc -d --declarationMap",
+    "build": "rm -rf dist && npm run format && npm ci && tsc -d --declarationMap",
     "test": "ava --verbose tests/*-tests.ts --timeout=2m",
     "test:browser": "webpack-dev-server",
     "format": "prettier-standard --format"
