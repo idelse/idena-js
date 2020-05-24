@@ -1,9 +1,9 @@
 import test from 'ava'
-import { Idena, LocalKeyStore } from '../src/index'
+import { Idena, ProviderLocalKeyStore } from '../src/index'
 
 test.beforeEach(async t => {
   const privateKey = process.env.PRIVATE_KEY
-  const provider = new LocalKeyStore(privateKey)
+  const provider = new ProviderLocalKeyStore(privateKey)
   const to = await provider.getAddress()
   const idena = new Idena(provider)
   t.context = { idena, to, privateKey }

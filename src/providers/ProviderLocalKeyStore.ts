@@ -5,7 +5,7 @@ import { Wallet } from 'ethers'
 import Transaction from '../models/Transaction'
 import Identity from '../models/Identity'
 
-export = class LocalKeyStore implements Provider {
+export = class ProviderLocalKeyStore implements Provider {
   private signingKey: SigningKey
   private rpc: string
 
