@@ -2,8 +2,8 @@ import $ from 'jquery'
 import { ProviderLedger } from '../../src'
 import Idena from '../../src/models/Idena'
 
-const providerLedger = new ProviderLedger()
-const idena = new Idena(providerLedger)
+let providerLedger = new ProviderLedger()
+let idena = new Idena(providerLedger)
 
 $(document).ready(() => {
   $('#connect_ledger').on('click', async () => {
@@ -22,5 +22,10 @@ $(document).ready(() => {
     })
     const confirmation = await transfer.confirmation()
     console.log('Send transaction > ', confirmation)
+  })
+  $('#clear').on('click', async () => {
+    await idena.close()
+    providerLedger = new ProviderLedger()
+    idena = new Idena(providerLedger)
   })
 })

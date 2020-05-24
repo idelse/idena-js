@@ -95,4 +95,8 @@ export = class ProviderLocalKeyStore implements Provider {
       return r.result
     })
   }
+
+  close (): Promise<void> {
+    return undefined
+  }
 }

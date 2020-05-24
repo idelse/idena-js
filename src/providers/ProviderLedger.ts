@@ -196,4 +196,8 @@ export = class ProviderLedger implements Provider {
       return r.result
     })
   }
+
+  close (): Promise<void> {
+    return this.transport.close()
+  }
 }

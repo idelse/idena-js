@@ -55,4 +55,8 @@ export default class Idena {
   getProvider (): Provider {
     return this.provider
   }
+
+  close (): Promise<void> {
+    return this.provider.close()
+  }
 }

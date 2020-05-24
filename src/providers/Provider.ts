@@ -12,4 +12,5 @@ export default interface Provider {
   ): Promise<{ balance: number; stake: number }>
   getTransactionByHash(hash: string): Promise<Transaction>
   getIdentityByAddress(address: string): Promise<Identity>
+  close(): Promise<void>
 }
