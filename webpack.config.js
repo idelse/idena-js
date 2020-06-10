@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   devServer: {
+    https: true,
     historyApiFallback: true,
     hot: true,
     inline: true,

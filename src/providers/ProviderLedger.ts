@@ -1,77 +1,34 @@
 import Provider from './Provider'
-import request from 'request-promise'
 import Transaction from '../models/Transaction'
 import Identity from '../models/Identity'
 // @ts-ignore
-import { ledgerUSBVendorId } from '@ledgerhq/devices'
-// @ts-ignore
-import { listen } from '@ledgerhq/logs'
-// @ts-ignore
-import TransportWebHID from '@ledgerhq/hw-transport-webhid'
+import Transport from '@ledgerhq/hw-transport-webusb'
 import { decode } from '@stablelib/utf8'
+import { Rpc } from '../services/Rpc'
 const struct = require('python-struct')
 
 export = class ProviderLedger implements Provider {
-  private rpc: string
   // @ts-ignore
   private transport: any
   private address: string
   private addressIndex: number
+  private rpc: Rpc
 
-  constructor (rpc: string = 'https://rpc.idena.dev') {
-    this.rpc = rpc
+  constructor (uri: string = 'https://rpc.idena.dev') {
+    this.rpc = new Rpc(uri)
   }
 
-  getHID () {
-    const { hid } = navigator as any
-    if (!hid) throw new Error('navigator.hid is not supported')
-
-    return hid
-  }
-
-  async requestLedgerDevice () {
-    const device = await this.getHID().requestDevice({
-      filters: [{ vendorId: ledgerUSBVendorId }]
-    })
-
-    if (device.length === 0) throw new Error('no device selected')
-
-    return device
-  }
-
-  async supportedTransports () {
-    const support = await Promise.all([
-      TransportWebHID.isSupported().then((supported: boolean) =>
-        supported ? 'hid' : null
-      )
-    ])
-
-    return support.filter(t => t)
-  }
-
-  async connect () {
+  async connect (addressIndex: number = 0) {
     if (this.transport) return
-    listen((log: any) => console.debug(log))
-
-    const transports = await this.supportedTransports()
-
-    if (transports.indexOf('hid') !== -1) {
-      const approved = await TransportWebHID.list()
-
-      if (!Array.isArray(approved) || approved.length === 0)
-        await this.requestLedgerDevice()
-
-      this.transport = await TransportWebHID.openConnected()
-    } else throw new Error('no supported transports')
-
+    this.transport = await Transport.create()
     this.transport.setScrambleKey('')
-
-    if (!this.address || !this.addressIndex) await this.getAddress()
+    if (!this.address) await this.getAddress(addressIndex)
   }
 
   private async exchange (cmd: Buffer): Promise<Uint8Array> {
     if (!this.transport) await this.connect()
-    const resp = await this.transport.exchange(cmd)
+    const resp = await this.transport.send(cmd)
+    console.log('resp > ', resp)
     return Uint8Array.from(resp.slice(0, resp.length - 2))
   }
 
@@ -91,9 +48,14 @@ export = class ProviderLedger implements Provider {
     return Buffer.concat(result)
   }
 
-  async sign (message: Buffer): Promise<Buffer> {
-    if (!this.transport || !this.address || !this.addressIndex)
-      await this.connect()
+  async sign (message: Buffer, addressIndex: number = 0): Promise<Buffer> {
+    if (
+      !this.transport ||
+      !this.address ||
+      !this.addressIndex ||
+      this.addressIndex !== addressIndex
+    )
+      await this.connect(addressIndex)
     const donglePath = this.parseBip32Path(`44'/515'/0'/0/${this.addressIndex}`)
     const cmd = Buffer.concat([
       Buffer.from('e0040000', 'hex'),
@@ -109,13 +71,13 @@ export = class ProviderLedger implements Provider {
 
   inject (signedMessage: Buffer): Promise<string> {
     const hexSignedMessage = '0x' + signedMessage.toString('hex')
-    return this.request('bcn_sendRawTx', [hexSignedMessage])
+    return this.rpc.inject(hexSignedMessage)
   }
 
-  async getAddress (index?: number): Promise<string> {
+  async getAddress (addressIndex: number = 0): Promise<string> {
     if (!this.transport) await this.connect()
     if (this.address) return this.address
-    const donglePath = this.parseBip32Path(`44'/515'/0'/0/${index || 0}`)
+    const donglePath = this.parseBip32Path(`44'/515'/0'/0/${addressIndex}`)
 
     const cmd = Buffer.concat([
       Buffer.from('e0020100', 'hex'),
@@ -130,30 +92,26 @@ export = class ProviderLedger implements Provider {
     const address =
       '0x' + decode(resp.slice(offset + 1, offset + 1 + resp[offset]))
     this.address = address
-    this.addressIndex = index || 0
+    this.addressIndex = addressIndex
     return address
   }
 
   async getEpoch (): Promise<number> {
-    const result = await this.request('dna_epoch')
-    return result.epoch
+    return this.rpc.getEpoch()
   }
 
   async getNonceByAddress (address: string): Promise<number> {
-    console.log('nonce ', address)
-    const { nonce } = await this.request('dna_getBalance', [address])
-    return nonce
+    return this.rpc.getNonceByAddress(address)
   }
 
   async getBalanceByAddress (
     address: string
   ): Promise<{ balance: number; stake: number }> {
-    const { balance, stake } = await this.request('dna_getBalance', [address])
-    return { balance, stake }
+    return this.rpc.getBalanceByAddress(address)
   }
 
   async getTransactionByHash (hash: string): Promise<Transaction> {
-    let result = await this.request('bcn_transaction', [hash])
+    const result = await this.rpc.getTransactionByHash(hash)
     return Transaction.deserialize(this, {
       hash: result.hash,
       nonce: result.nonce,
@@ -170,31 +128,11 @@ export = class ProviderLedger implements Provider {
   }
 
   async getIdentityByAddress (address: string): Promise<Identity> {
-    let identity: any = this.request('dna_identity', [address])
-    identity.penalty = parseFloat(identity.penalty)
-    return identity
+    return this.rpc.getIdentityByAddress(address)
   }
 
-  private request (method: string, params: any[] = []) {
-    return request({
-      url: this.rpc,
-      json: {
-        id: 1,
-        method,
-        params
-      },
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json'
-      }
-    }).then(r => {
-      if (!r) {
-        throw Error(`${method} could be blacklisted`)
-      }
-      if (r && r.error && r.error.message) throw Error(r.error.message)
-      if (!r.result) throw Error('unknown error')
-      return r.result
-    })
+  getMaxFeePerByte (): Promise<number> {
+    return this.rpc.getMaxFeePerByte()
   }
 
   close (): Promise<void> {
