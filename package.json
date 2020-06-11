@@ -1,6 +1,6 @@
 {
   "name": "idena-js",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Idena JS Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,10 +32,7 @@
   },
   "dependencies": {
     "@ledgerhq/devices": "^5.15.0",
-    "@ledgerhq/hw-transport-u2f": "^5.15.0",
-    "@ledgerhq/hw-transport-webauthn": "^5.15.0",
     "@ledgerhq/hw-transport-webhid": "^5.15.0",
-    "@ledgerhq/hw-transport-webusb": "^5.15.0",
     "@ledgerhq/logs": "^5.15.0",
     "@stablelib/utf8": "^1.0.0",
     "ethereum-hdwallet": "0.0.26",
