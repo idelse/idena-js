@@ -10,23 +10,32 @@ export default class Idena {
     this.provider = provider
   }
 
-  async transfer (parameters: TransactionParameters): Promise<Operation> {
-    return Transaction.deserialize(this.provider, parameters).inject()
+  async transfer (
+    parameters: TransactionParameters,
+    indexAddress: number = 0
+  ): Promise<Operation> {
+    return Transaction.deserialize(this.provider, parameters).inject(
+      indexAddress
+    )
   }
 
   async bulkTransactions (
-    transactions: TransactionParameters[]
+    transactions: TransactionParameters[],
+    indexAddress: number = 0
   ): Promise<Operation[]> {
-    const address = await this.provider.getAddress()
+    const address = await this.provider.getAddress(indexAddress)
     const nonce = await this.provider.getNonceByAddress(address)
     let ops: Operation[] = []
     for (let i = 0; i < transactions.length; ++i) {
       ops = [
         ...ops,
-        await this.transfer({
-          ...transactions[i],
-          nonce: nonce + i + 1
-        })
+        await this.transfer(
+          {
+            ...transactions[i],
+            nonce: nonce + i + 1
+          },
+          indexAddress
+        )
       ]
     }
     return ops

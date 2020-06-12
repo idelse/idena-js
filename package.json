@@ -1,6 +1,6 @@
 {
   "name": "idena-js",
-  "version": "1.0.26",
+  "version": "1.1.0",
   "description": "Idena JS Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

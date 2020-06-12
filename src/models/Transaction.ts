@@ -41,10 +41,10 @@ export default class Transaction implements TransactionParameters {
     this.provider = provider
   }
 
-  async inject (): Promise<Operation> {
-    const forged = await this.getForged()
-    const signature = await this.provider.sign(forged)
-    const signedTransaction = await this.getForged(signature)
+  async inject (indexAddress: number = 0): Promise<Operation> {
+    const forged = await this.getForged(indexAddress)
+    const signature = await this.provider.sign(forged, indexAddress)
+    const signedTransaction = await this.getForged(indexAddress, signature)
     this.hash = await this.provider.inject(signedTransaction)
     return new Operation(this.provider, this.hash)
   }
@@ -55,10 +55,13 @@ export default class Transaction implements TransactionParameters {
     return averageTransactionSize * feePerByte
   }
 
-  async getForged (signature?: Buffer): Promise<Buffer> {
+  async getForged (
+    indexAddress: number = 0,
+    signature?: Buffer
+  ): Promise<Buffer> {
     let payload
     if (this.nonce === undefined) {
-      const address = await this.provider.getAddress()
+      const address = await this.provider.getAddress(indexAddress)
       this.nonce = (await this.provider.getNonceByAddress(address)) + 1
     }
     if (this.epoch === undefined) {

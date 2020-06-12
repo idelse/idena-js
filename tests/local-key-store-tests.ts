@@ -1,8 +1,13 @@
 import test from 'ava'
 import { Idena, ProviderLocalKeyStore } from '../src/index'
+const HDWallet = require('ethereum-hdwallet')
 
 test.beforeEach(async t => {
-  const privateKey = process.env.PRIVATE_KEY
+  const derivation = "m/44'/515'/0'/0/0"
+  const privateKey = HDWallet.fromMnemonic(process.env.MNEMONIC)
+    .derive(derivation)
+    .getPrivateKey()
+    .toString('hex')
   const provider = new ProviderLocalKeyStore(privateKey)
   const to = await provider.getAddress()
   const idena = new Idena(provider)
@@ -62,7 +67,7 @@ test.serial(
 
 test.serial('Retrieve identity details by address.', async (t: any) => {
   const { idena } = t.context
-  const address = '0x02f5513d22d0c0d27fd4799c37cdc6b73b489c4a'
+  const address = '0xd65fd9617609a5bc7cbe6f3cfdb53b51d6c33e5c'
   const identity = await idena.getIdentityByAddress(address)
   t.is(identity.address, address)
 })
