@@ -1,6 +1,4 @@
-import Provider from './Provider'
-import Transaction from '../models/Transaction'
-import Identity from '../models/Identity'
+import IdenaProvider from './IdenaProvider'
 // @ts-ignore
 import { ledgerUSBVendorId } from '@ledgerhq/devices'
 // @ts-ignore
@@ -11,14 +9,15 @@ import { decode } from '@stablelib/utf8'
 import { Rpc } from '../services/Rpc'
 const struct = require('python-struct')
 
-export = class ProviderLedger implements Provider {
+export = class ProviderLedger extends IdenaProvider {
   // @ts-ignore
   private transport: any
   private address: string
   private addressIndex: number
-  private rpc: Rpc
+  public rpc: Rpc
 
   constructor (uri: string = 'https://rpc.idena.dev') {
+    super()
     this.rpc = new Rpc(uri)
   }
 
@@ -66,7 +65,7 @@ export = class ProviderLedger implements Provider {
 
     this.transport.setScrambleKey('')
 
-    if (!this.address || !this.addressIndex) await this.getAddress()
+    if (!this.address || !this.addressIndex) await this.getAddressByIndex()
   }
 
   private async exchange (cmd: Buffer): Promise<Uint8Array> {
@@ -91,7 +90,7 @@ export = class ProviderLedger implements Provider {
     return Buffer.concat(result)
   }
 
-  async sign (message: Buffer): Promise<Buffer> {
+  async signMessageByIndex (message: Buffer): Promise<Buffer> {
     if (!this.transport || !this.address || !this.addressIndex)
       await this.connect()
     const donglePath = this.parseBip32Path(`44'/515'/0'/0/${this.addressIndex}`)
@@ -107,12 +106,7 @@ export = class ProviderLedger implements Provider {
     return Buffer.from(signedMessage)
   }
 
-  inject (signedMessage: Buffer): Promise<string> {
-    const hexSignedMessage = '0x' + signedMessage.toString('hex')
-    return this.rpc.inject(hexSignedMessage)
-  }
-
-  async getAddress (index?: number): Promise<string> {
+  async getAddressByIndex (index?: number): Promise<string> {
     if (!this.transport) await this.connect()
     if (this.address) return this.address
     const donglePath = this.parseBip32Path(`44'/515'/0'/0/${index || 0}`)
@@ -132,45 +126,6 @@ export = class ProviderLedger implements Provider {
     this.address = address
     this.addressIndex = index || 0
     return address
-  }
-
-  async getNonceByAddress (address: string): Promise<number> {
-    return this.rpc.getNonceByAddress(address)
-  }
-
-  async getBalanceByAddress (
-    address: string
-  ): Promise<{ balance: number; stake: number }> {
-    return this.rpc.getBalanceByAddress(address)
-  }
-
-  async getTransactionByHash (hash: string): Promise<Transaction> {
-    const result = await this.rpc.getTransactionByHash(hash)
-    return Transaction.deserialize(this, {
-      hash: result.hash,
-      nonce: result.nonce,
-      type: result.type === 'send' ? 0 : -1,
-      to: result.to,
-      from: result.from,
-      amount: result.amount,
-      epoch: result.epoch,
-      payload: result.payload,
-      blockHash: result.blockHash,
-      usedFee: result.usedFee,
-      timestamp: new Date(result.timestamp * 1000)
-    })
-  }
-
-  async getIdentityByAddress (address: string): Promise<Identity> {
-    return this.rpc.getIdentityByAddress(address)
-  }
-
-  async getEpoch (): Promise<number> {
-    return this.rpc.getEpoch()
-  }
-
-  getMaxFeePerByte (): Promise<number> {
-    return this.rpc.getMaxFeePerByte()
   }
 
   close (): Promise<void> {

@@ -1,4 +1,4 @@
-import Provider from '../providers/Provider'
+import IdenaProvider from '../providers/IdenaProvider'
 import Operation from './Operation'
 const RLP = require('rlp')
 
@@ -20,7 +20,7 @@ export interface TransactionParameters {
 }
 
 export default class Transaction implements TransactionParameters {
-  private provider: Provider
+  private provider: IdenaProvider
 
   nonce?: number
   epoch?: number
@@ -37,20 +37,20 @@ export default class Transaction implements TransactionParameters {
   usedFee?: number
   timestamp?: Date
 
-  constructor (provider: Provider) {
+  constructor (provider: IdenaProvider) {
     this.provider = provider
   }
 
   async inject (indexAddress: number = 0): Promise<Operation> {
     const forged = await this.getForged(indexAddress)
-    const signature = await this.provider.sign(forged, indexAddress)
+    const signature = await this.provider.signMessageByIndex(forged, indexAddress)
     const signedTransaction = await this.getForged(indexAddress, signature)
-    this.hash = await this.provider.inject(signedTransaction)
+    this.hash = await this.provider.rpc.inject(signedTransaction)
     return new Operation(this.provider, this.hash)
   }
 
   private async baseTransactionFee () {
-    const feePerByte = await this.provider.getMaxFeePerByte()
+    const feePerByte = await this.provider.rpc.getMaxFeePerByte()
     const averageTransactionSize = 200
     return averageTransactionSize * feePerByte
   }
@@ -61,11 +61,11 @@ export default class Transaction implements TransactionParameters {
   ): Promise<Buffer> {
     let payload
     if (this.nonce === undefined) {
-      const address = await this.provider.getAddress(indexAddress)
-      this.nonce = (await this.provider.getNonceByAddress(address)) + 1
+      const address = await this.provider.getAddressByIndex(indexAddress)
+      this.nonce = (await this.provider.rpc.getNonceByAddress(address)) + 1
     }
     if (this.epoch === undefined) {
-      this.epoch = await this.provider.getEpoch()
+      this.epoch = await this.provider.rpc.getEpoch()
     }
     if (this.payload !== undefined && this.payload instanceof Buffer)
       payload = '0x' + Buffer.from(this.payload).toString('hex')
@@ -80,7 +80,7 @@ export default class Transaction implements TransactionParameters {
     // https://bit.ly/2SIdJOb
     const baseTransactionFee = await this.baseTransactionFee()
     const payloadBytes = payload.replace('0x', '').length / 2
-    const maxFeePerByte = await this.provider.getMaxFeePerByte()
+    const maxFeePerByte = await this.provider.rpc.getMaxFeePerByte()
     const maxFee =
       this.maxFee || baseTransactionFee + maxFeePerByte * payloadBytes
 
@@ -99,7 +99,7 @@ export default class Transaction implements TransactionParameters {
   }
 
   static deserialize (
-    provider: Provider,
+    provider: IdenaProvider,
     data: TransactionParameters
   ): Transaction {
     return Object.assign(new Transaction(provider), data)

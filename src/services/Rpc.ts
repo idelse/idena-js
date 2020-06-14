@@ -8,7 +8,8 @@ export class Rpc {
     this.uri = uri
   }
 
-  async inject (hexSignedMessage: string): Promise<string> {
+  async inject (signedMessage: Buffer): Promise<string> {
+    const hexSignedMessage = '0x' + signedMessage.toString('hex')
     return this.request('bcn_sendRawTx', [hexSignedMessage])
   }
 
