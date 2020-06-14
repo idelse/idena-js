@@ -4,7 +4,6 @@ import { Rpc } from '../services/Rpc'
 const HDWallet = require('ethereum-hdwallet')
 
 export = class ProviderHDWallet extends IdenaProvider {
-
   private wallet: any
   private derivationPath: string
 
@@ -21,8 +20,13 @@ export = class ProviderHDWallet extends IdenaProvider {
     this.derivationPath = derivationPath
   }
 
-  async signMessageByIndex (message: Buffer, index: number = 0): Promise<Buffer> {
-    return this.getLocalKeyStoreProviderByIndex(index).signMessageByIndex(message)
+  async signMessageByIndex (
+    message: Buffer,
+    index: number = 0
+  ): Promise<Buffer> {
+    return this.getLocalKeyStoreProviderByIndex(index).signMessageByIndex(
+      message
+    )
   }
 
   getAddressByIndex (index: number = 0): Promise<string> {
@@ -43,5 +47,4 @@ export = class ProviderHDWallet extends IdenaProvider {
       .toString('hex')
     return new ProviderLocalKeyStore(privateKey)
   }
-
 }

@@ -14,7 +14,10 @@ export = class ProviderLocalKeyStore extends IdenaProvider {
     this.rpc = new Rpc(uri)
   }
 
-  async signMessageByIndex (message: Buffer, index: number = 0): Promise<Buffer> {
+  async signMessageByIndex (
+    message: Buffer,
+    index: number = 0
+  ): Promise<Buffer> {
     const digest = keccak256(message)
     const sig = this.signingKey.signDigest(digest)
     return Buffer.concat([

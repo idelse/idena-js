@@ -43,7 +43,10 @@ export default class Transaction implements TransactionParameters {
 
   async inject (indexAddress: number = 0): Promise<Operation> {
     const forged = await this.getForged(indexAddress)
-    const signature = await this.provider.signMessageByIndex(forged, indexAddress)
+    const signature = await this.provider.signMessageByIndex(
+      forged,
+      indexAddress
+    )
     const signedTransaction = await this.getForged(indexAddress, signature)
     this.hash = await this.provider.rpc.inject(signedTransaction)
     return new Operation(this.provider, this.hash)

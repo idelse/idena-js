@@ -4,27 +4,28 @@ import Operation from '../models/Operation'
 import Identity from '../models/Identity'
 
 export default abstract class IdenaProvider {
-
   public rpc: Rpc
 
   /**
    * Retrieve address of the index-th manages address.
    * @param index
    */
-  abstract getAddressByIndex(index: number): Promise<string>
+  abstract getAddressByIndex (index: number): Promise<string>
 
   /**
    * Sign message using index-th privatekey.
    * @param message
    * @param index
    */
-  abstract signMessageByIndex(message: Buffer, index: number): Promise<Buffer>
+  abstract signMessageByIndex (message: Buffer, index: number): Promise<Buffer>
 
   /**
    * Retrieve balance of the index-th manages address.
    * @param index
    */
-  async getBalanceByIndex (index: number = 0): Promise<{ balance: number; stake: number }> {
+  async getBalanceByIndex (
+    index: number = 0
+  ): Promise<{ balance: number; stake: number }> {
     const address = await this.getAddressByIndex(index)
     return this.rpc.getBalanceByAddress(address)
   }
@@ -33,12 +34,12 @@ export default abstract class IdenaProvider {
    * Retrieve nonce of the index-th managed address.
    * @param index
    */
-  async getNonceByIndex(index: number = 0): Promise<number> {
+  async getNonceByIndex (index: number = 0): Promise<number> {
     const address = await this.getAddressByIndex(index)
     return this.rpc.getNonceByAddress(address)
   }
 
-  async getIdentityByIndex(index: number = 0): Promise<Identity> {
+  async getIdentityByIndex (index: number = 0): Promise<Identity> {
     const address = await this.getAddressByIndex(index)
     return this.rpc.getIdentityByAddress(address)
   }
@@ -52,17 +53,17 @@ export default abstract class IdenaProvider {
     parameters: TransactionParameters,
     index: number = 0
   ): Promise<Operation> {
-    return Transaction.deserialize(this, parameters).inject(
-      index
-    )
+    return Transaction.deserialize(this, parameters).inject(index)
   }
 
   /**
    * Retrieve transaction by operation.
    * @param operation
    */
-  async getTransactionByOperation (operation: string | Operation): Promise<Transaction> {
-    if (typeof operation === "string") {
+  async getTransactionByOperation (
+    operation: string | Operation
+  ): Promise<Transaction> {
+    if (typeof operation === 'string') {
       const result = await this.rpc.getTransactionByHash(operation)
       return Transaction.deserialize(this, {
         hash: result.hash,
@@ -113,6 +114,5 @@ export default abstract class IdenaProvider {
   /**
    * Close provider connection. It could be useful on provider based on hardware.
    */
-  abstract close(): Promise<void>
-
+  abstract close (): Promise<void>
 }

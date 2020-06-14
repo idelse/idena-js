@@ -37,7 +37,7 @@ test.serial(
   'Transfer should be rejected due insufficient funds.',
   async (t: any) => {
     const idena: IdenaProvider = t.context.idena
-  const { to } = t.context
+    const { to } = t.context
     const error = await t.throwsAsync(async () => {
       await idena.transferByIndex({ amount: 100_000_000, to })
     })

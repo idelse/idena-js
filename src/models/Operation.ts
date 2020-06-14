@@ -14,7 +14,9 @@ export default class Operation {
       let i = 15
       const interval = setInterval(async () => {
         if (i === 0) reject(new Error('Error timeout'))
-        const transaction = await this.provider.getTransactionByOperation(this.hash)
+        const transaction = await this.provider.getTransactionByOperation(
+          this.hash
+        )
         if (transaction.usedFee > 0) {
           clearInterval(interval)
           resolve(this)
