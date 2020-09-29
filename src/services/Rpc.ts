@@ -41,7 +41,9 @@ export class Rpc {
   }
 
   async getMaxFeePerByte (): Promise<number> {
-    return this.request('bcn_feePerGas').then(r => parseFloat(r) / 10 ** 18)
+    return this.request('bcn_feePerGas')
+      .then(r => parseFloat(r) / 10 ** 18)
+      .then(r => r * 10)
   }
 
   private request (method: string, params: any[] = []) {
